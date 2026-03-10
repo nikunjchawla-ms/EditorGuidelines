@@ -280,3 +280,4 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+release_artifacts/
