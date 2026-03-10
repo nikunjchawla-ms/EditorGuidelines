@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Media;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -44,7 +45,6 @@ namespace EditorGuidelines
             }
         }
 
-
         private string GetUserSettingsString(string key, string value)
         {
             var store = ReadOnlyUserSettings;
@@ -65,6 +65,8 @@ namespace EditorGuidelines
             Marshal.ThrowExceptionForHR(store.SetString(key, propertyName, value));
         }
 
+        #region Legacy settings format (RGB(r,g,b) col1, col2, col3)
+
         private void WriteSettings(Color color, IEnumerable<int> columns)
         {
             var value = ComposeSettingsString(color, columns);
@@ -76,113 +78,16 @@ namespace EditorGuidelines
             var sb = new StringBuilder();
             sb.AppendFormat(InvariantCulture, "RGB({0},{1},{2})", color.R, color.G, color.B);
             var columnsEnumerator = columns.GetEnumerator();
-            if( columnsEnumerator.MoveNext() )
+            if (columnsEnumerator.MoveNext())
             {
                 sb.AppendFormat(InvariantCulture, " {0}", columnsEnumerator.Current);
-                while( columnsEnumerator.MoveNext() )
+                while (columnsEnumerator.MoveNext())
                 {
                     sb.AppendFormat(InvariantCulture, ", {0}", columnsEnumerator.Current);
                 }
             }
 
             return sb.ToString();
-        }
-
-        #region ITextEditorGuidesSettingsChanger Members
-
-        public bool AddGuideline(int column)
-        {
-            if (!IsValidColumn(column))
-            {
-                throw new ArgumentOutOfRangeException(nameof(column), Resources.AddGuidelineParameterOutOfRange);
-            }
-
-            if (GetCountOfGuidelines() >= c_maxGuides)
-            {
-                return false; // Cannot add more than _maxGuides guidelines
-            }
-
-            // Check for duplicates
-            var columns = new List<int>(GuideLinePositionsInChars);
-            if (columns.Contains(column))
-            {
-                return false;
-            }
-
-            columns.Add(column);
-
-            WriteSettings(GuidelinesColor, columns);
-            return true;
-        }
-
-        public bool RemoveGuideline(int column)
-        {
-            if (!IsValidColumn(column))
-            {
-                throw new ArgumentOutOfRangeException(nameof(column), Resources.RemoveGuidelineParameterOutOfRange);
-            }
-
-            var columns = new List<int>(GuideLinePositionsInChars);
-            if (!columns.Remove(column))
-            {
-                // Not present
-                // Allow user to remove the last column even if they're not on the right column
-                if (columns.Count != 1)
-                {
-                    return false;
-                }
-
-                columns.Clear();
-            }
-
-            WriteSettings(GuidelinesColor, columns);
-            return true;
-        }
-
-        public bool CanAddGuideline(int column)
-            => IsValidColumn(column)
-            && GetCountOfGuidelines() < c_maxGuides
-            && !IsGuidelinePresent(column);
-
-        public bool CanRemoveGuideline(int column)
-            => IsValidColumn(column)
-            && (IsGuidelinePresent(column) || HasExactlyOneGuideline()); // Allow user to remove the last guideline regardless of the column
-
-        public void RemoveAllGuidelines()
-            => WriteSettings(GuidelinesColor, Array.Empty<int>());
-
-        #endregion
-
-        private bool HasExactlyOneGuideline()
-        {
-            using (var enumerator = GuideLinePositionsInChars.GetEnumerator())
-            {
-                return enumerator.MoveNext() && !enumerator.MoveNext();
-            }
-        }
-
-        private int GetCountOfGuidelines()
-        {
-            var i = 0;
-            foreach (var value in GuideLinePositionsInChars)
-            {
-                i++;
-            }
-
-            return i;
-        }
-
-        private bool IsGuidelinePresent(int column)
-        {
-            foreach (var value in GuideLinePositionsInChars)
-            {
-                if (value == column)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private string _guidelinesConfiguration;
@@ -192,7 +97,7 @@ namespace EditorGuidelines
             {
                 if (_guidelinesConfiguration == null)
                 {
-                    _guidelinesConfiguration = GetUserSettingsString(c_textEditor, "Guides").Trim();
+                    _guidelinesConfiguration = GetUserSettingsString(c_textEditor, c_guidesPropertyName).Trim();
                 }
 
                 return _guidelinesConfiguration;
@@ -203,14 +108,10 @@ namespace EditorGuidelines
                 if (value != _guidelinesConfiguration)
                 {
                     _guidelinesConfiguration = value;
-                    WriteUserSettingsString(c_textEditor, "Guides", value);
-                    FirePropertyChanged(nameof(ITextEditorGuidesSettings.GuideLinePositionsInChars));
+                    WriteUserSettingsString(c_textEditor, c_guidesPropertyName, value);
                 }
             }
         }
-
-        private void FirePropertyChanged(string propertyName)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         // Parse a color out of a string that begins like "RGB(255,0,0)"
         public Color GuidelinesColor
@@ -271,7 +172,7 @@ namespace EditorGuidelines
                 foreach (var columnText in columns)
                 {
                     var column = -1;
-                    if (int.TryParse(columnText, out column) && column >= 0 /*Note: VS 2008 didn't allow zero, but we do, per user request*/ )
+                    if (int.TryParse(columnText, out column) && column >= 0 /*Note: VS 2008 didn't allow zero, but we do, per user request*/)
                     {
                         columnCount++;
                         yield return column;
@@ -283,6 +184,296 @@ namespace EditorGuidelines
                 }
             }
         }
+
+        /// <summary>
+        /// Sync the legacy Guides key with column positions extracted from StyledGuidelines.
+        /// </summary>
+        private void SyncLegacyFromStyled(string styledValue)
+        {
+            var guidelines = Parser.ParseGuidelinesFromCodingConvention(styledValue, null);
+            var columns = guidelines?.Select(g => g.Column) ?? Enumerable.Empty<int>();
+            GuidelinesConfiguration = ComposeSettingsString(GuidelinesColor, columns);
+        }
+
+        #endregion
+
+        #region Styled guidelines settings
+
+        private string _styledGuidelines;
+
+        /// <summary>
+        /// The styled guidelines configuration string.
+        /// Uses the same comma-separated syntax as the .editorconfig guidelines property,
+        /// in which each entry is a column number optionally followed by style parameters.
+        /// </summary>
+        public string StyledGuidelines
+        {
+            get
+            {
+                if (_styledGuidelines != null)
+                {
+                    return _styledGuidelines;
+                }
+
+                _styledGuidelines = GetUserSettingsString(c_textEditor, c_styledGuidelinesPropertyName).Trim();
+
+                // Migration: if StyledGuidelines is empty but legacy Guides has data, migrate.
+                if (string.IsNullOrEmpty(_styledGuidelines))
+                {
+                    var legacyColumns = new List<int>(GuideLinePositionsInChars);
+                    if (legacyColumns.Count > 0)
+                    {
+                        _styledGuidelines = string.Join(", ", legacyColumns.Select(c => c.ToString(InvariantCulture)));
+                        WriteUserSettingsString(c_textEditor, c_styledGuidelinesPropertyName, _styledGuidelines);
+                    }
+                }
+
+                return _styledGuidelines;
+            }
+
+            set
+            {
+                if (value == _styledGuidelines)
+                {
+                    return;
+                }
+
+                _styledGuidelines = value;
+                WriteUserSettingsString(c_textEditor, c_styledGuidelinesPropertyName, value);
+
+                // Keep legacy key in sync with column positions
+                SyncLegacyFromStyled(value);
+
+                FirePropertyChanged(nameof(StyledGuidelines));
+                FirePropertyChanged(nameof(ITextEditorGuidesSettings.GuideLinePositionsInChars));
+            }
+        }
+
+        private string _defaultGuidelineStyle;
+
+        /// <summary>
+        /// The default guideline style string applied to guidelines without an explicit style.
+        /// Uses the same syntax as the .editorconfig guidelines_style property.
+        /// When empty, the Fonts &amp; Colors brush is used.
+        /// </summary>
+        public string DefaultGuidelineStyle
+        {
+            get
+            {
+                if (_defaultGuidelineStyle == null)
+                {
+                    _defaultGuidelineStyle = GetUserSettingsString(c_textEditor, c_defaultGuidelineStylePropertyName).Trim();
+                }
+
+                return _defaultGuidelineStyle;
+            }
+
+            set
+            {
+                if (value == _defaultGuidelineStyle)
+                {
+                    return;
+                }
+
+                _defaultGuidelineStyle = value;
+                WriteUserSettingsString(c_textEditor, c_defaultGuidelineStylePropertyName, value);
+                FirePropertyChanged(nameof(DefaultGuidelineStyle));
+                // Also signal that guidelines rendering may need to change
+                FirePropertyChanged(nameof(StyledGuidelines));
+            }
+        }
+
+        /// <summary>
+        /// Get the styled guidelines as parsed <see cref="Guideline"/> objects.
+        /// Falls back to legacy column-only guidelines if StyledGuidelines is empty.
+        /// </summary>
+        public IEnumerable<Guideline> StyledGuidelineObjects
+        {
+            get
+            {
+                var styled = StyledGuidelines;
+                if (!string.IsNullOrEmpty(styled))
+                {
+                    // Parse the default style
+                    StrokeParameters fallbackStyle = null;
+                    var defaultStyle = DefaultGuidelineStyle;
+                    if (!string.IsNullOrEmpty(defaultStyle))
+                    {
+                        Parser.TryParseStrokeParametersFromCodingConvention(defaultStyle, out fallbackStyle);
+                        fallbackStyle?.Freeze();
+                    }
+
+                    var guidelines = Parser.ParseGuidelinesFromCodingConvention(styled, fallbackStyle);
+                    if (guidelines != null)
+                    {
+                        return guidelines;
+                    }
+                }
+
+                // Fall back to legacy: column numbers with null stroke parameters (uses Fonts & Colors brush)
+                return GuideLinePositionsInChars.Select(c => new Guideline(c, null));
+            }
+        }
+
+        #endregion
+
+        #region ITextEditorGuidesSettingsChanger Members
+
+        public bool AddGuideline(int column)
+        {
+            if (!IsValidColumn(column))
+            {
+                throw new ArgumentOutOfRangeException(nameof(column), Resources.AddGuidelineParameterOutOfRange);
+            }
+
+            if (GetCountOfGuidelines() >= c_maxGuides)
+            {
+                return false; // Cannot add more than _maxGuides guidelines
+            }
+
+            // Check for duplicates
+            if (IsGuidelinePresent(column))
+            {
+                return false;
+            }
+
+            // Add to styled guidelines, preserving existing styles
+            var styled = StyledGuidelines;
+            if (string.IsNullOrEmpty(styled))
+            {
+                StyledGuidelines = column.ToString(InvariantCulture);
+            }
+            else
+            {
+                StyledGuidelines = styled + ", " + column.ToString(InvariantCulture);
+            }
+
+            return true;
+        }
+
+        public bool RemoveGuideline(int column)
+        {
+            if (!IsValidColumn(column))
+            {
+                throw new ArgumentOutOfRangeException(nameof(column), Resources.RemoveGuidelineParameterOutOfRange);
+            }
+
+            var styled = StyledGuidelines;
+            if (string.IsNullOrEmpty(styled))
+            {
+                return false;
+            }
+
+            // Parse current guidelines, remove the one at the given column
+            StrokeParameters fallbackStyle = null;
+            var defaultStyle = DefaultGuidelineStyle;
+            if (!string.IsNullOrEmpty(defaultStyle))
+            {
+                Parser.TryParseStrokeParametersFromCodingConvention(defaultStyle, out fallbackStyle);
+            }
+
+            var guidelines = Parser.ParseGuidelinesFromCodingConvention(styled, fallbackStyle);
+            if (guidelines == null)
+            {
+                return false;
+            }
+
+            var toRemove = guidelines.FirstOrDefault(g => g.Column == column);
+            if (toRemove == null)
+            {
+                // Not present. Allow user to remove the last column even if they're not on the right column.
+                if (guidelines.Count != 1)
+                {
+                    return false;
+                }
+
+                guidelines.Clear();
+            }
+            else
+            {
+                guidelines.Remove(toRemove);
+            }
+
+            StyledGuidelines = ComposeStyledString(guidelines);
+            return true;
+        }
+
+        public bool CanAddGuideline(int column)
+            => IsValidColumn(column)
+            && GetCountOfGuidelines() < c_maxGuides
+            && !IsGuidelinePresent(column);
+
+        public bool CanRemoveGuideline(int column)
+            => IsValidColumn(column)
+            && (IsGuidelinePresent(column) || HasExactlyOneGuideline()); // Allow user to remove the last guideline regardless of the column
+
+        public void RemoveAllGuidelines()
+            => StyledGuidelines = string.Empty;
+
+        /// <summary>
+        /// Compose a styled guidelines string from a set of <see cref="Guideline"/> objects.
+        /// </summary>
+        internal static string ComposeStyledString(IEnumerable<Guideline> guidelines)
+        {
+            var sb = new StringBuilder();
+            var first = true;
+            foreach (var guideline in guidelines)
+            {
+                if (!first)
+                {
+                    sb.Append(", ");
+                }
+
+                sb.Append(guideline.Column.ToString(InvariantCulture));
+
+                if (guideline.StrokeParameters != null)
+                {
+                    sb.AppendFormat(InvariantCulture, " {0}", guideline.StrokeParameters);
+                }
+
+                first = false;
+            }
+
+            return sb.ToString();
+        }
+
+        #endregion
+
+        private bool HasExactlyOneGuideline()
+        {
+            var guidelines = StyledGuidelineObjects;
+            using (var enumerator = guidelines.GetEnumerator())
+            {
+                return enumerator.MoveNext() && !enumerator.MoveNext();
+            }
+        }
+
+        private int GetCountOfGuidelines()
+        {
+            var i = 0;
+            foreach (var _ in StyledGuidelineObjects)
+            {
+                i++;
+            }
+
+            return i;
+        }
+
+        private bool IsGuidelinePresent(int column)
+        {
+            foreach (var guideline in StyledGuidelineObjects)
+            {
+                if (guideline.Column == column)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void FirePropertyChanged(string propertyName)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         public bool DontShowVsVersionWarning
         {
@@ -301,6 +492,9 @@ namespace EditorGuidelines
         }
 
         private const string c_textEditor = "Text Editor";
+        private const string c_guidesPropertyName = "Guides";
+        private const string c_styledGuidelinesPropertyName = "StyledGuidelines";
+        private const string c_defaultGuidelineStylePropertyName = "DefaultGuidelineStyle";
         private const string c_dontShowVsVersionWarningPropertyName = "DontShowEditorGuidelinesVsVersionWarning";
 
         #region INotifyPropertyChanged Members

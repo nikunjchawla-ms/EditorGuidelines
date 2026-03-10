@@ -8,6 +8,25 @@ namespace EditorGuidelines
     {
         IEnumerable<int> GuideLinePositionsInChars { get; }
 
+        /// <summary>
+        /// The styled guidelines configuration string.
+        /// Uses the same comma-separated syntax as the .editorconfig guidelines property,
+        /// in which each entry is a column number optionally followed by style parameters.
+        /// </summary>
+        string StyledGuidelines { get; set; }
+
+        /// <summary>
+        /// The default guideline style string applied to guidelines without an explicit style.
+        /// Uses the same syntax as the .editorconfig guidelines_style property.
+        /// When empty, the Fonts &amp; Colors brush is used.
+        /// </summary>
+        string DefaultGuidelineStyle { get; set; }
+
+        /// <summary>
+        /// Get the styled guidelines as parsed <see cref="Guideline"/> objects.
+        /// </summary>
+        IEnumerable<Guideline> StyledGuidelineObjects { get; }
+
         bool DontShowVsVersionWarning { get; set; }
     }
 }

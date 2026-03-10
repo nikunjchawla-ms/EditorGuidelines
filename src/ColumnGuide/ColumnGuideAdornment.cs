@@ -49,6 +49,11 @@ namespace EditorGuidelines
         /// </summary>
         private readonly StrokeParameters _strokeParameters;
 
+        /// <summary>
+        /// The settings for guideline positions and styles.
+        /// </summary>
+        private readonly ITextEditorGuidesSettings _settings;
+
         private readonly CancellationTokenSource _codingConventionsCancellationTokenSource;
         private bool _isUsingCodingConvention;
 
@@ -62,6 +67,7 @@ namespace EditorGuidelines
         public ColumnGuideAdornment(IWpfTextView view, ITextEditorGuidesSettings settings, GuidelineBrush guidelineBrush, CodingConventions codingConventions)
         {
             _view = view;
+            _settings = settings;
             _guidelineBrush = guidelineBrush;
             _guidelineBrush.BrushChanged += GuidelineBrushChanged;
             _strokeParameters = StrokeParameters.FromBrush(_guidelineBrush.Brush);
@@ -72,7 +78,7 @@ namespace EditorGuidelines
                 var fireAndForgetTask = LoadGuidelinesFromEditorConfigAsync(codingConventions, view);
             }
 
-            InitializeGuidelines(settings.GuideLinePositionsInChars);
+            InitializeGuidelinesFromSettings();
 
             _view.LayoutChanged += OnViewLayoutChanged;
             _settingsChanged = settings as INotifyPropertyChanged;
@@ -118,31 +124,21 @@ namespace EditorGuidelines
             }
         }
 
-        private void InitializeGuidelines(IEnumerable<int> guideLinePositions)
+        private void InitializeGuidelinesFromSettings()
         {
-            var initialGuidelines = GuidelinesFromSettings(guideLinePositions);
+            var initialGuidelines = _settings.StyledGuidelineObjects;
             CreateVisualLines(initialGuidelines);
         }
 
         private void SettingsChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (!_isUsingCodingConvention && sender is ITextEditorGuidesSettings settings && e.PropertyName == nameof(ITextEditorGuidesSettings.GuideLinePositionsInChars))
+            if (!_isUsingCodingConvention && sender is ITextEditorGuidesSettings settings &&
+                (e.PropertyName == nameof(ITextEditorGuidesSettings.StyledGuidelines) ||
+                 e.PropertyName == nameof(ITextEditorGuidesSettings.GuideLinePositionsInChars)))
             {
-                var guidelines = GuidelinesFromSettings(settings.GuideLinePositionsInChars);
+                var guidelines = settings.StyledGuidelineObjects;
                 GuidelinesChanged(guidelines);
             }
-        }
-
-        /// <summary>
-        /// Given a collection of column numbers, create a <see cref="Guideline"/> collection.
-        /// The guidelines will all have the default (null) brush.
-        /// </summary>
-        /// <param name="guideLinePositions">The position of each guideline in characters from the left edge.</param>
-        /// <returns>A <see cref="Guideline"/> collection.</returns>
-        private static IEnumerable<Guideline> GuidelinesFromSettings(IEnumerable<int> guideLinePositions)
-        {
-            var guidelines = from column in guideLinePositions select new Guideline(column, null);
-            return guidelines;
         }
 
         private void GuidelinesChanged(IEnumerable<Guideline> newGuidelines)
