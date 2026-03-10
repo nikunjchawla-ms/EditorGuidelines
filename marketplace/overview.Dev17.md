@@ -2,8 +2,6 @@ Editor Guidelines adds vertical column guides behind your code. This is useful i
 
 **Note:** This version is specifically for Visual Studio 2022 and later versions (including 2026).
 
-**Note:** This extension collects and transmits anonymized usage statistics to the extension author for product improvement purposes.
-
 ## Getting Started
 Add a new guideline via the context (right-click) menu on the editor surface. You will see a "Guidelines" flyout with three commands:
 
@@ -79,6 +77,9 @@ These commands may also be accessed from Visual Studio's Command Window:
 ![Command Window](images/CommandWindow.png)
 
 Note that the column numbers used for the Edit.AddGuideline and Edit.RemoveGuideline commands refer to the right side of the given column of text. I.e., to place a guide to the right of column 80, use `Edit.AddGuideline 80`. To place a guide to the left of the first column use `Edit.AddGuideline 0`.
+
+## Telemetry
+This fork has had all telemetry removed. The original [EditorGuidelines](https://github.com/pharring/EditorGuidelines) extension collects and transmits anonymized usage statistics. This version does not collect or transmit any usage data.
 
 ## Support
 If you find a bug in this extension or have a feature request, please visit https://github.com/pharring/EditorGuidelines to file an issue.

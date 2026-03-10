@@ -2,8 +2,6 @@ Editor Guidelines adds vertical column guides behind your code. This is useful i
 
 Looking for a version that works with **Visual Studio 2022 and later versions**? Please [go here](https://marketplace.visualstudio.com/items?itemName=PaulHarrington.EditorGuidelinesPreview) to download that version.
 
-_Note: This extension collects and transmits anonymized usage statistics to the extension author for product improvement purposes._
-
 ## Getting Started
 Add a new guideline via the context (right-click) menu on the editor surface. You will see a "Guidelines" flyout with three commands:
 
@@ -13,12 +11,12 @@ When "Add Guideline" is selected, a vertical dashed line will be drawn at the sa
 
 "Remove Guideline" will remove any guideline at the current insertion point.
 
-"Remove All Guidelines" does exactly that. 
+"Remove All Guidelines" does exactly that.
 
 ## Configuration
 You can change the guideline color from the Fonts and Colors page in Tools/Options. Look for "Guideline" in the Text Editor category:
 
-![Fonts and Colors](images/FontsAndColors.png) 
+![Fonts and Colors](images/FontsAndColors.png)
 
 ## .editorconfig support (VS 2017 and above)
 For VS 2017 and above, the position of guidelines can be overridden via settings in .editorconfig files.
@@ -81,6 +79,9 @@ These commands may also be accessed from Visual Studio's Command Window
 ![Command Window](images/CommandWindow.png)
 
 Note that the column numbers used for the Edit.AddGuideline and Edit.RemoveGuideline commands refer to the right side of the given column of text. i.e. To place a guide to the right of column 80, use "Edit.AddGuideline 80". To place a guide to the left of the first column use "Edit.AddGuideline 0".
+
+## Telemetry
+This fork has had all telemetry removed. The original [EditorGuidelines](https://github.com/pharring/EditorGuidelines) extension collects and transmits anonymized usage statistics. This version does not collect or transmit any usage data.
 
 ## Support
 If you find a bug in this extension or have a feature request, please visit https://github.com/pharring/EditorGuidelines to file an issue.

@@ -31,7 +31,7 @@ Once downloaded, double-click on the downloaded file (.VSIX) and follow the prom
 - Visual Studio 2015 and 2017: Select "Extensions and Updates..." from the "Tools" menu. Search for "Editor Guidelines" in the Visual Studio Marketplace.
 
 You will then have to close and restart Visual Studio for the extension to be fully installed.
-  
+
 ## Usage
 Control guidelines via the context (right-click) menu on the editor surface. You will see a *Guidelines* flyout with three commands:
 
@@ -107,4 +107,5 @@ To learn more about .editorconfig see https://aka.ms/editorconfigdocs
 
 **Note:** When guidelines are set via .editorconfig they override any other guidelines set via the context menus or command window.
 
-_Note: This extension collects and transmits anonymized usage statistics to the extension author for product improvement purposes._
+## Telemetry
+This fork has had all telemetry removed. The original [EditorGuidelines](https://github.com/pharring/EditorGuidelines) extension by Paul Harrington collects and transmits anonymized usage statistics via Application Insights. In this fork, the `Telemetry.cs` module and all telemetry call sites have been removed, and the `Microsoft.ApplicationInsights` dependency has been eliminated.

@@ -36,7 +36,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.1.0" />
     <PackageReference Include="Microsoft.VisualStudio.CodingConventions" Version="1.1.20180503.2" />
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="14.0.25424" />
     <PackageReference Include="Microsoft.VisualStudio.Editor" Version="14.3.25407" />
@@ -74,7 +73,6 @@
   <Target Name="IncludeNuGetPackageReferences" AfterTargets="GetVsixSourceItems">
     <ItemGroup>
       <_ReferenceCopyLocalBinaries Include="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)' != '.pdb'" />
-      <VSIXSourceItem Include="@(_ReferenceCopyLocalBinaries)" Condition="'%(_ReferenceCopyLocalBinaries.NuGetPackageId)' == 'Microsoft.ApplicationInsights'" />
       <VSIXSourceItem Include="@(_ReferenceCopyLocalBinaries)" Condition="'%(_ReferenceCopyLocalBinaries.NuGetPackageId)' == 'Microsoft.VisualStudio.CodingConventions'" />
     </ItemGroup>
   </Target>
