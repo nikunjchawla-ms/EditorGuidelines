@@ -28,6 +28,7 @@ namespace EditorGuidelines
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     // This attribute is needed to let the shell know that this package exposes some menus.
     [ProvideMenuResource("Menus.ctmenu", version: 3)]
+    [ProvideOptionPage(typeof(GuidelinesOptionsPage), "Text Editor", "Editor Guidelines", 0, 0, true)]
     [Guid(PackageGuidString)]
     public sealed class EditorGuidelinesPackage : AsyncPackage
     {

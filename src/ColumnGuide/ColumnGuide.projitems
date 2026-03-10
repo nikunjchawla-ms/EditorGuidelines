@@ -15,6 +15,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Guideline.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GuidelineBrush.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GuidelineColorDefinition.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GuidelinesOptionsControl.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GuidelinesOptionsPage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HostServices.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ITextBufferExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ITextEditorGuidesSettings.cs" />
