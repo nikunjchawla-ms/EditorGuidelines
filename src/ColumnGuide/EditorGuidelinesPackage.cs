@@ -103,6 +103,28 @@ namespace EditorGuidelines
         private readonly OleMenuCommand _addGuidelineCommand;
         private readonly OleMenuCommand _removeGuidelineCommand;
 
+        /// <summary>
+        /// If .editorconfig is actively controlling guidelines and ignore is off,
+        /// warn the user that their change won't take visible effect.
+        /// </summary>
+        /// <returns>True if the command should proceed; false if cancelled by the user.</returns>
+        private static bool WarnIfEditorConfigActive()
+        {
+            var settings = TextEditorGuidesSettingsRendezvous.Instance as ITextEditorGuidesSettings;
+            if (settings == null || !settings.IsEditorConfigActive || settings.IgnoreEditorConfigGuidelines)
+            {
+                return true;
+            }
+
+            var result = MessageBox.Show(
+                    Resources.EditorConfigActiveWarning,
+                    Resources.EditorConfigActiveWarningTitle,
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Information);
+
+            return result == DialogResult.Yes;
+        }
+
         private void AddColumnGuideBeforeQueryStatus(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -145,6 +167,11 @@ namespace EditorGuidelines
         private void AddColumnGuideExecuted(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
+            if (!WarnIfEditorConfigActive())
+            {
+                return;
+            }
+
             var column = GetApplicableColumn(e);
             if (column >= 0)
             {
@@ -155,6 +182,11 @@ namespace EditorGuidelines
         private void RemoveColumnGuideExecuted(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
+            if (!WarnIfEditorConfigActive())
+            {
+                return;
+            }
+
             var column = GetApplicableColumn(e);
             if (column >= 0)
             {
@@ -164,11 +196,21 @@ namespace EditorGuidelines
 
         private void RemoveAllGuidelinesExecuted(object sender, EventArgs e)
         {
+            if (!WarnIfEditorConfigActive())
+            {
+                return;
+            }
+
             TextEditorGuidesSettingsRendezvous.Instance.RemoveAllGuidelines();
         }
 
         private void SetGuidelinesExecuted(object sender, EventArgs e)
         {
+            if (!WarnIfEditorConfigActive())
+            {
+                return;
+            }
+
             var settings = TextEditorGuidesSettingsRendezvous.Instance as ITextEditorGuidesSettings;
             if (settings == null)
             {

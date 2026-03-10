@@ -518,6 +518,31 @@ namespace EditorGuidelines
         private const string c_ignoreEditorConfigPropertyName = "IgnoreEditorConfigGuidelines";
         private const string c_dontShowVsVersionWarningPropertyName = "DontShowEditorGuidelinesVsVersionWarning";
 
+        private int _editorConfigActiveCount;
+
+        /// <summary>
+        /// Whether any open editor is currently using .editorconfig guideline settings.
+        /// </summary>
+        public bool IsEditorConfigActive => _editorConfigActiveCount > 0;
+
+        /// <inheritdoc />
+        public void NotifyEditorConfigActive()
+        {
+            if (System.Threading.Interlocked.Increment(ref _editorConfigActiveCount) == 1)
+            {
+                FirePropertyChanged(nameof(IsEditorConfigActive));
+            }
+        }
+
+        /// <inheritdoc />
+        public void NotifyEditorConfigInactive()
+        {
+            if (System.Threading.Interlocked.Decrement(ref _editorConfigActiveCount) == 0)
+            {
+                FirePropertyChanged(nameof(IsEditorConfigActive));
+            }
+        }
+
         #region INotifyPropertyChanged Members
 
         public event PropertyChangedEventHandler PropertyChanged;

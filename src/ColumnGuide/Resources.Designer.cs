@@ -10,8 +10,8 @@
 
 namespace EditorGuidelines {
     using System;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -23,15 +23,15 @@ namespace EditorGuidelines {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
-        
+
         private static global::System.Resources.ResourceManager resourceMan;
-        
+
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal Resources() {
         }
-        
+
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -45,7 +45,7 @@ namespace EditorGuidelines {
                 return resourceMan;
             }
         }
-        
+
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -59,7 +59,7 @@ namespace EditorGuidelines {
                 resourceCulture = value;
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The parameter must be between 0 and 10,000.
         /// </summary>
@@ -68,7 +68,7 @@ namespace EditorGuidelines {
                 return ResourceManager.GetString("AddGuidelineParameterOutOfRange", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid column..
         /// </summary>
@@ -77,7 +77,7 @@ namespace EditorGuidelines {
                 return ResourceManager.GetString("InvalidColumn", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Missing IVsMonitorSelection service..
         /// </summary>
@@ -86,13 +86,31 @@ namespace EditorGuidelines {
                 return ResourceManager.GetString("MissingIVsMonitorSelectionService", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The parameter must be between 0 and 10,000.
         /// </summary>
         internal static string RemoveGuidelineParameterOutOfRange {
             get {
                 return ResourceManager.GetString("RemoveGuidelineParameterOutOfRange", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Guidelines are currently controlled by .editorconfig....
+        /// </summary>
+        internal static string EditorConfigActiveWarning {
+            get {
+                return ResourceManager.GetString("EditorConfigActiveWarning", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Editor Guidelines.
+        /// </summary>
+        internal static string EditorConfigActiveWarningTitle {
+            get {
+                return ResourceManager.GetString("EditorConfigActiveWarningTitle", resourceCulture);
             }
         }
     }

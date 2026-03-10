@@ -165,7 +165,12 @@ namespace EditorGuidelines
         /// </summary>
         private void SwitchToLocalSettings()
         {
-            _isUsingCodingConvention = false;
+            if (_isUsingCodingConvention)
+            {
+                _isUsingCodingConvention = false;
+                _settings.NotifyEditorConfigInactive();
+            }
+
             var guidelines = _settings.StyledGuidelineObjects;
             GuidelinesChanged(guidelines);
         }
@@ -407,7 +412,11 @@ namespace EditorGuidelines
             if (guidelines != null)
             {
                 // Override 'classic' settings.
-                _isUsingCodingConvention = true;
+                if (!_isUsingCodingConvention)
+                {
+                    _isUsingCodingConvention = true;
+                    _settings.NotifyEditorConfigActive();
+                }
 
                 // TODO: await JoinableTaskFactory.SwitchToMainThreadAsync();
 #pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
@@ -427,6 +436,14 @@ namespace EditorGuidelines
             return !currentGuidelines.SequenceEqual(newGuidelines);
         }
 
-        public void Dispose() => _codingConventionsCancellationTokenSource?.Dispose();
+        public void Dispose()
+        {
+            if (_isUsingCodingConvention)
+            {
+                _settings.NotifyEditorConfigInactive();
+            }
+
+            _codingConventionsCancellationTokenSource?.Dispose();
+        }
     }
 }

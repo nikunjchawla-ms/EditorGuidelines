@@ -32,6 +32,21 @@ namespace EditorGuidelines
         /// </summary>
         bool IgnoreEditorConfigGuidelines { get; set; }
 
+        /// <summary>
+        /// Whether any open editor is currently using .editorconfig guideline settings.
+        /// </summary>
+        bool IsEditorConfigActive { get; }
+
+        /// <summary>
+        /// Increment the count of editors using .editorconfig guidelines.
+        /// </summary>
+        void NotifyEditorConfigActive();
+
+        /// <summary>
+        /// Decrement the count of editors using .editorconfig guidelines.
+        /// </summary>
+        void NotifyEditorConfigInactive();
+
         bool DontShowVsVersionWarning { get; set; }
     }
 }
