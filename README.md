@@ -40,6 +40,7 @@ Control guidelines via the context (right-click) menu on the editor surface. You
 * When *Add Guideline* is selected, a vertical dashed line will be drawn at the same position as the caret (insertion point).
 * *Remove Guideline* will remove any guideline at the current insertion point.
 * *Remove All Guidelines* does exactly that.
+* *Set Guidelines...* opens a dialog where you can type guideline positions directly, with optional per-column styles.
 
 These commands may also be accessed from Visual Studio's Command Window.
 
@@ -105,7 +106,15 @@ If both `max_line_length` and `guidelines` are present, the extension will rende
 
 To learn more about .editorconfig see https://aka.ms/editorconfigdocs
 
-**Note:** When guidelines are set via .editorconfig they override any other guidelines set via the context menus or command window.
+**Note:** When guidelines are set via .editorconfig they override any other guidelines set via the context menus or command window. You can disable this behavior using the ignore toggles in the Options page (see below).
+
+## Options Page
+Configure guidelines via **Tools > Options > Text Editor > Editor Guidelines**:
+
+- **Guidelines** — Enter column positions with optional styles, using the same syntax as the .editorconfig `guidelines` property.
+- **Default style** — Set a fallback style for guidelines without an explicit style, using the same syntax as the .editorconfig `guidelines_style` property. When empty, the Fonts & Colors brush is used.
+- **Ignore .editorconfig guideline settings (global)** — When checked, .editorconfig guideline settings are ignored for all solutions.
+- **Ignore .editorconfig guideline settings (this solution)** — When checked, .editorconfig guideline settings are ignored for the current solution. Only visible when a solution or project is open. Overridden by the global toggle.
 
 ## Telemetry
 This fork has had all telemetry removed. The original [EditorGuidelines](https://github.com/pharring/EditorGuidelines) extension by Paul Harrington collects and transmits anonymized usage statistics via Application Insights. In this fork, the `Telemetry.cs` module and all telemetry call sites have been removed, and the `Microsoft.ApplicationInsights` dependency has been eliminated.

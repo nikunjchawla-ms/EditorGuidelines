@@ -13,10 +13,14 @@ When "Add Guideline" is selected, a vertical dashed line will be drawn at the sa
 
 "Remove All Guidelines" does exactly that.
 
+"Set Guidelines..." opens a dialog where you can type guideline positions directly, with optional per-column styles.
+
 ## Configuration
 You can change the guideline color from the Fonts and Colors page in Tools/Options. Look for "Guideline" in the Text Editor category:
 
 ![Fonts and Colors](images/FontsAndColors.png)
+
+Additional settings are available in **Tools > Options > Text Editor > Editor Guidelines**, including guideline positions with optional styles, a default style, and options to ignore .editorconfig guideline settings globally or per-solution.
 
 ## .editorconfig support (VS 2017 and above)
 For VS 2017 and above, the position of guidelines can be overridden via settings in .editorconfig files.

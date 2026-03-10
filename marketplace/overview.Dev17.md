@@ -10,11 +10,14 @@ Add a new guideline via the context (right-click) menu on the editor surface. Yo
 - **Add Guideline:** Places a vertical dashed line at the same position as the caret (insertion point).
 - **Remove Guideline:** Removes any guideline at the current insertion point.
 - **Remove All Guidelines:** Removes all guidelines.
+- **Set Guidelines...** Opens a dialog where you can type guideline positions directly, with optional per-column styles.
 
 ## Configuration
 You can change the guideline color from the Fonts and Colors page in Tools/Options. Look for "Guideline" in the Text Editor category:
 
 ![Fonts and Colors](images/FontsAndColors.png)
+
+Additional settings are available in **Tools > Options > Text Editor > Editor Guidelines**, including guideline positions with optional styles, a default style, and options to ignore .editorconfig guideline settings globally or per-solution.
 
 ## .editorconfig support
 The position of guidelines can be overridden via settings in .editorconfig files.
