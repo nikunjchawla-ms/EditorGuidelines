@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Windows.Forms;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -26,7 +27,7 @@ namespace EditorGuidelines
     // a package.
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     // This attribute is needed to let the shell know that this package exposes some menus.
-    [ProvideMenuResource("Menus.ctmenu", version: 2)]
+    [ProvideMenuResource("Menus.ctmenu", version: 3)]
     [Guid(PackageGuidString)]
     public sealed class EditorGuidelinesPackage : AsyncPackage
     {
@@ -42,6 +43,7 @@ namespace EditorGuidelines
             public const int AddColumnGuideline = 0x100;
             public const int RemoveColumnGuideline = 0x101;
             public const int RemoveAllColumnGuidelines = 0x103;
+            public const int SetGuidelines = 0x104;
         }
 
         /// <summary>
@@ -84,6 +86,7 @@ namespace EditorGuidelines
                 mcs.AddCommand(_addGuidelineCommand);
                 mcs.AddCommand(_removeGuidelineCommand);
                 mcs.AddCommand(new MenuCommand(RemoveAllGuidelinesExecuted, new CommandID(CommandSet, CommandIds.RemoveAllColumnGuidelines)));
+                mcs.AddCommand(new MenuCommand(SetGuidelinesExecuted, new CommandID(CommandSet, CommandIds.SetGuidelines)));
             }
         }
 
@@ -154,6 +157,24 @@ namespace EditorGuidelines
         private void RemoveAllGuidelinesExecuted(object sender, EventArgs e)
         {
             TextEditorGuidesSettingsRendezvous.Instance.RemoveAllGuidelines();
+        }
+
+        private void SetGuidelinesExecuted(object sender, EventArgs e)
+        {
+            var settings = TextEditorGuidesSettingsRendezvous.Instance as ITextEditorGuidesSettings;
+            if (settings == null)
+            {
+                return;
+            }
+
+            using (var dialog = new SetGuidelinesDialog(settings.StyledGuidelines, settings.DefaultGuidelineStyle))
+            {
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    settings.StyledGuidelines = dialog.GuidelinesText;
+                    settings.DefaultGuidelineStyle = dialog.DefaultStyleText;
+                }
+            }
         }
 
         /// <summary>
