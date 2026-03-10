@@ -6,10 +6,12 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Task = System.Threading.Tasks.Task;
 
 namespace EditorGuidelines
 {
@@ -75,14 +77,19 @@ namespace EditorGuidelines
         /// Initialization of the package; this method is called right after the package is sited, so this is the place
         /// where you can put all the initialization code that rely on services provided by VisualStudio.
         /// </summary>
-        protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        protected override async Task InitializeAsync(
+            CancellationToken cancellationToken,
+            IProgress<ServiceProgressData> progress)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+            // Initialize per-solution settings
+            var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel));
+            var solutionSettings = componentModel?.GetService<SolutionSettings>();
+            solutionSettings?.Initialize();
+
             // Add our command handlers for menu (commands must exist in the .vsct file)
-#pragma warning disable VSTHRD103 // Call async methods when in an async method. We're already on the main thread.
-            if (GetService(typeof(IMenuCommandService)) is OleMenuCommandService mcs)
-#pragma warning restore VSTHRD103 // Call async methods when in an async method
+            if (await GetServiceAsync(typeof(IMenuCommandService)) is OleMenuCommandService mcs)
             {
                 mcs.AddCommand(_addGuidelineCommand);
                 mcs.AddCommand(_removeGuidelineCommand);

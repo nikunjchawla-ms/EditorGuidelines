@@ -36,7 +36,12 @@ namespace EditorGuidelines
         {
             // Always create the adornment, even if there are no guidelines, since we
             // respond to dynamic changes.
-            var _ = new ColumnGuideAdornment(textView, TextEditorGuidesSettings, GuidelineBrush, CodingConventions);
+            var _ = new ColumnGuideAdornment(
+                textView,
+                TextEditorGuidesSettings,
+                GuidelineBrush,
+                CodingConventions,
+                SolutionSettings);
         }
 
         [Import]
@@ -47,6 +52,9 @@ namespace EditorGuidelines
 
         [Import]
         private CodingConventions CodingConventions { get; set; }
+
+        [Import]
+        private SolutionSettings SolutionSettings { get; set; }
     }
 #endregion //Adornment Factory
 }

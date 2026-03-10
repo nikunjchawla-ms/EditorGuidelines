@@ -16,6 +16,8 @@ namespace EditorGuidelines
         private readonly TextBox _defaultStyleTextBox;
         private readonly Label _validationLabel;
         private readonly CheckBox _ignoreEditorConfigCheckBox;
+        private readonly CheckBox _ignoreEditorConfigSolutionCheckBox;
+        private readonly Label _solutionOverrideLabel;
 
         public GuidelinesOptionsControl()
         {
@@ -73,7 +75,7 @@ namespace EditorGuidelines
                 Location = new Point(0, 155),
                 Size = new Size(480, 40),
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
-                ForeColor = System.Drawing.Color.DarkRed,
+                ForeColor = Color.DarkRed,
                 Text = string.Empty
             };
 
@@ -83,13 +85,33 @@ namespace EditorGuidelines
                 Location = new Point(0, 205),
                 AutoSize = true
             };
+            _ignoreEditorConfigCheckBox.CheckedChanged += OnIgnoreGlobalChanged;
+
+            _ignoreEditorConfigSolutionCheckBox = new CheckBox
+            {
+                Text = "Ignore .editorconfig guideline settings (this solution)",
+                Location = new Point(0, 230),
+                AutoSize = true,
+                Visible = false
+            };
+
+            _solutionOverrideLabel = new Label
+            {
+                Text = "(overridden by global setting)",
+                Location = new Point(20, 250),
+                AutoSize = true,
+                ForeColor = SystemColors.GrayText,
+                Visible = false
+            };
 
             Controls.AddRange(new Control[]
             {
                 guidelinesLabel, _guidelinesTextBox, guidelinesHint,
                 defaultStyleLabel, _defaultStyleTextBox, defaultStyleHint,
                 _validationLabel,
-                _ignoreEditorConfigCheckBox
+                _ignoreEditorConfigCheckBox,
+                _ignoreEditorConfigSolutionCheckBox,
+                _solutionOverrideLabel
             });
         }
 
@@ -117,7 +139,44 @@ namespace EditorGuidelines
         public bool IgnoreEditorConfig
         {
             get => _ignoreEditorConfigCheckBox.Checked;
-            set => _ignoreEditorConfigCheckBox.Checked = value;
+            set
+            {
+                _ignoreEditorConfigCheckBox.Checked = value;
+                UpdateSolutionCheckBoxState();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the per-solution ignore .editorconfig setting.
+        /// </summary>
+        public bool IgnoreEditorConfigSolution
+        {
+            get => _ignoreEditorConfigSolutionCheckBox.Checked;
+            set => _ignoreEditorConfigSolutionCheckBox.Checked = value;
+        }
+
+        /// <summary>
+        /// Whether to show the per-solution checkbox (hidden when no solution is open).
+        /// </summary>
+        public bool ShowSolutionCheckBox
+        {
+            set
+            {
+                _ignoreEditorConfigSolutionCheckBox.Visible = value;
+                UpdateSolutionCheckBoxState();
+            }
+        }
+
+        private void OnIgnoreGlobalChanged(object sender, EventArgs e)
+        {
+            UpdateSolutionCheckBoxState();
+        }
+
+        private void UpdateSolutionCheckBoxState()
+        {
+            var globalOn = _ignoreEditorConfigCheckBox.Checked;
+            _ignoreEditorConfigSolutionCheckBox.Enabled = !globalOn;
+            _solutionOverrideLabel.Visible = _ignoreEditorConfigSolutionCheckBox.Visible && globalOn;
         }
 
         private void OnTextChanged(object sender, EventArgs e)

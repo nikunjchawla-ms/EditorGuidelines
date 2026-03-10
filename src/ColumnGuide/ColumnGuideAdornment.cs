@@ -54,8 +54,10 @@ namespace EditorGuidelines
         /// </summary>
         private readonly ITextEditorGuidesSettings _settings;
 
-        private readonly CancellationTokenSource _codingConventionsCancellationTokenSource;
+        private CancellationTokenSource _codingConventionsCancellationTokenSource;
         private bool _isUsingCodingConvention;
+        private readonly SolutionSettings _solutionSettings;
+        private readonly CodingConventions _codingConventions;
 
         /// <summary>
         /// Creates editor column guidelines
@@ -64,15 +66,23 @@ namespace EditorGuidelines
         /// <param name="settings">The guideline settings.</param>
         /// <param name="guidelineBrush">The guideline brush.</param>
         /// <param name="codingConventions">The coding conventions manager for handling .editorconfig settings.</param>
-        public ColumnGuideAdornment(IWpfTextView view, ITextEditorGuidesSettings settings, GuidelineBrush guidelineBrush, CodingConventions codingConventions)
+        /// <param name="solutionSettings">Per-solution settings.</param>
+        public ColumnGuideAdornment(
+            IWpfTextView view,
+            ITextEditorGuidesSettings settings,
+            GuidelineBrush guidelineBrush,
+            CodingConventions codingConventions,
+            SolutionSettings solutionSettings)
         {
             _view = view;
             _settings = settings;
             _guidelineBrush = guidelineBrush;
             _guidelineBrush.BrushChanged += GuidelineBrushChanged;
             _strokeParameters = StrokeParameters.FromBrush(_guidelineBrush.Brush);
+            _solutionSettings = solutionSettings;
+            _codingConventions = codingConventions;
 
-            if (codingConventions != null && !settings.IgnoreEditorConfigGuidelines)
+            if (codingConventions != null && !ShouldIgnoreEditorConfig())
             {
                 _codingConventionsCancellationTokenSource = new CancellationTokenSource();
                 var fireAndForgetTask = LoadGuidelinesFromEditorConfigAsync(codingConventions, view);
@@ -85,6 +95,11 @@ namespace EditorGuidelines
             if (_settingsChanged != null)
             {
                 _settingsChanged.PropertyChanged += SettingsChanged;
+            }
+
+            if (_solutionSettings != null)
+            {
+                _solutionSettings.PropertyChanged += OnSolutionSettingsChanged;
             }
 
             _view.Closed += ViewClosed;
@@ -111,10 +126,16 @@ namespace EditorGuidelines
 
             _view.LayoutChanged -= OnViewLayoutChanged;
             _view.Closed -= ViewClosed;
+
             if (_settingsChanged != null)
             {
                 _settingsChanged.PropertyChanged -= SettingsChanged;
                 _settingsChanged = null;
+            }
+
+            if (_solutionSettings != null)
+            {
+                _solutionSettings.PropertyChanged -= OnSolutionSettingsChanged;
             }
 
             if (_guidelineBrush != null)
@@ -130,26 +151,85 @@ namespace EditorGuidelines
             CreateVisualLines(initialGuidelines);
         }
 
+        /// <summary>
+        /// Whether .editorconfig guidelines should be ignored based on global and per-solution settings.
+        /// </summary>
+        private bool ShouldIgnoreEditorConfig()
+        {
+            return _settings.IgnoreEditorConfigGuidelines
+                || (_solutionSettings != null && _solutionSettings.IgnoreEditorConfigGuidelines);
+        }
+
+        /// <summary>
+        /// Switch from .editorconfig to local settings.
+        /// </summary>
+        private void SwitchToLocalSettings()
+        {
+            _isUsingCodingConvention = false;
+            var guidelines = _settings.StyledGuidelineObjects;
+            GuidelinesChanged(guidelines);
+        }
+
+        /// <summary>
+        /// Attempt to start using .editorconfig guidelines.
+        /// </summary>
+        private void SwitchToEditorConfig()
+        {
+            if (_codingConventions == null)
+            {
+                return;
+            }
+
+            // Cancel any previous .editorconfig loading
+            if (_codingConventionsCancellationTokenSource != null)
+            {
+                _codingConventionsCancellationTokenSource.Cancel();
+                _codingConventionsCancellationTokenSource.Dispose();
+            }
+
+            _codingConventionsCancellationTokenSource = new CancellationTokenSource();
+            var fireAndForgetTask = LoadGuidelinesFromEditorConfigAsync(_codingConventions, _view);
+        }
+
+        private void OnSolutionSettingsChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != nameof(SolutionSettings.IgnoreEditorConfigGuidelines))
+            {
+                return;
+            }
+
+            if (ShouldIgnoreEditorConfig())
+            {
+                SwitchToLocalSettings();
+            }
+            else
+            {
+                SwitchToEditorConfig();
+            }
+        }
+
         private void SettingsChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(ITextEditorGuidesSettings.IgnoreEditorConfigGuidelines))
             {
                 // When ignore toggle changes, switch between .editorconfig and local settings
-                if (sender is ITextEditorGuidesSettings settings && settings.IgnoreEditorConfigGuidelines)
+                if (ShouldIgnoreEditorConfig())
                 {
-                    _isUsingCodingConvention = false;
-                    var guidelines = settings.StyledGuidelineObjects;
-                    GuidelinesChanged(guidelines);
+                    SwitchToLocalSettings();
+                }
+                else
+                {
+                    SwitchToEditorConfig();
                 }
 
                 return;
             }
 
-            if (!_isUsingCodingConvention && sender is ITextEditorGuidesSettings settings2 &&
+            if (!_isUsingCodingConvention &&
                 (e.PropertyName == nameof(ITextEditorGuidesSettings.StyledGuidelines) ||
                  e.PropertyName == nameof(ITextEditorGuidesSettings.GuideLinePositionsInChars)))
             {
-                var guidelines = settings2.StyledGuidelineObjects;
+                var guidelines = _settings.StyledGuidelineObjects;
                 GuidelinesChanged(guidelines);
             }
         }
@@ -347,6 +427,6 @@ namespace EditorGuidelines
             return !currentGuidelines.SequenceEqual(newGuidelines);
         }
 
-        public void Dispose() => _codingConventionsCancellationTokenSource.Dispose();
+        public void Dispose() => _codingConventionsCancellationTokenSource?.Dispose();
     }
 }

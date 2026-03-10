@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -32,11 +33,17 @@ namespace EditorGuidelines
             return componentModel?.GetService<ITextEditorGuidesSettings>();
         }
 
+        private SolutionSettings GetSolutionSettings()
+        {
+            var componentModel = (IComponentModel)GetService(typeof(SComponentModel));
+            return componentModel?.GetService<SolutionSettings>();
+        }
+
         /// <summary>
         /// Called when the options page is activated (shown to the user).
         /// Load settings into the control.
         /// </summary>
-        protected override void OnActivate(System.ComponentModel.CancelEventArgs e)
+        protected override void OnActivate(CancelEventArgs e)
         {
             base.OnActivate(e);
 
@@ -46,6 +53,17 @@ namespace EditorGuidelines
                 _control.GuidelinesText = settings.StyledGuidelines ?? string.Empty;
                 _control.DefaultStyleText = settings.DefaultGuidelineStyle ?? string.Empty;
                 _control.IgnoreEditorConfig = settings.IgnoreEditorConfigGuidelines;
+            }
+
+            var solutionSettings = GetSolutionSettings();
+            if (solutionSettings != null && _control != null)
+            {
+                _control.ShowSolutionCheckBox = solutionSettings.HasSolution;
+                _control.IgnoreEditorConfigSolution = solutionSettings.IgnoreEditorConfigGuidelines;
+            }
+            else if (_control != null)
+            {
+                _control.ShowSolutionCheckBox = false;
             }
         }
 
@@ -61,6 +79,13 @@ namespace EditorGuidelines
                 settings.StyledGuidelines = _control.GuidelinesText.Trim();
                 settings.DefaultGuidelineStyle = _control.DefaultStyleText.Trim();
                 settings.IgnoreEditorConfigGuidelines = _control.IgnoreEditorConfig;
+            }
+
+            ThreadHelper.ThrowIfNotOnUIThread();
+            var solutionSettings = GetSolutionSettings();
+            if (solutionSettings != null && _control != null && solutionSettings.HasSolution)
+            {
+                solutionSettings.IgnoreEditorConfigGuidelines = _control.IgnoreEditorConfigSolution;
             }
 
             base.OnApply(e);

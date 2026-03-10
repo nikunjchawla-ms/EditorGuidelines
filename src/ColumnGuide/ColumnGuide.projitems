@@ -31,6 +31,7 @@
       <AutoGen>True</AutoGen>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)SetGuidelinesDialog.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SolutionSettings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)StrokeParameters.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TextEditorGuidesSettings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TextEditorGuidesSettingsRendezvous.cs" />

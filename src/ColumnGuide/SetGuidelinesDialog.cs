@@ -60,7 +60,7 @@ namespace EditorGuidelines
             {
                 Location = new Point(12, 125),
                 Size = new Size(460, 60),
-                ForeColor = System.Drawing.Color.DarkRed,
+                ForeColor = Color.DarkRed,
                 Text = string.Empty
             };
 
