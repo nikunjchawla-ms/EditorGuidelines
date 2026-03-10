@@ -4,13 +4,13 @@ using System;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Windows.Forms;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using System.Windows;
 using Task = System.Threading.Tasks.Task;
 
 namespace EditorGuidelines
@@ -119,10 +119,10 @@ namespace EditorGuidelines
             var result = MessageBox.Show(
                     Resources.EditorConfigActiveWarning,
                     Resources.EditorConfigActiveWarningTitle,
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Information);
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Information);
 
-            return result == DialogResult.Yes;
+            return result == MessageBoxResult.Yes;
         }
 
         private void AddColumnGuideBeforeQueryStatus(object sender, EventArgs e)
@@ -217,13 +217,11 @@ namespace EditorGuidelines
                 return;
             }
 
-            using (var dialog = new SetGuidelinesDialog(settings.StyledGuidelines, settings.DefaultGuidelineStyle))
+            var dialog = new SetGuidelinesDialogWpf(settings.StyledGuidelines, settings.DefaultGuidelineStyle);
+            if (dialog.ShowModal() == true)
             {
-                if (dialog.ShowDialog() == DialogResult.OK)
-                {
-                    settings.StyledGuidelines = dialog.GuidelinesText;
-                    settings.DefaultGuidelineStyle = dialog.DefaultStyleText;
-                }
+                settings.StyledGuidelines = dialog.GuidelinesText;
+                settings.DefaultGuidelineStyle = dialog.DefaultStyleText;
             }
         }
 

@@ -1,6 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
+using System.Windows;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 
@@ -8,19 +8,20 @@ namespace EditorGuidelines
 {
     /// <summary>
     /// Options page for Editor Guidelines, accessible via Tools > Options > Text Editor > Editor Guidelines.
+    /// Uses WPF for VS theme (dark/light mode) support.
     /// </summary>
     [Guid("5aa4cf31-6030-4655-99e7-239b331103f4")]
-    internal sealed class GuidelinesOptionsPage : DialogPage
+    internal sealed class GuidelinesOptionsPage : UIElementDialogPage
     {
-        private GuidelinesOptionsControl _control;
+        private GuidelinesOptionsControlWpf _control;
 
-        protected override IWin32Window Window
+        protected override UIElement Child
         {
             get
             {
                 if (_control == null)
                 {
-                    _control = new GuidelinesOptionsControl();
+                    _control = new GuidelinesOptionsControlWpf();
                 }
 
                 return _control;

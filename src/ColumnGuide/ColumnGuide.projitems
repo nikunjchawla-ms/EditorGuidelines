@@ -15,7 +15,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Guideline.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GuidelineBrush.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GuidelineColorDefinition.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)GuidelinesOptionsControl.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GuidelinesOptionsControlWpf.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GuidelinesOptionsPage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HostServices.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ITextBufferExtensions.cs" />
@@ -30,7 +30,7 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)SetGuidelinesDialog.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SetGuidelinesDialogWpf.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SolutionSettings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)StrokeParameters.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TextEditorGuidesSettings.cs" />
