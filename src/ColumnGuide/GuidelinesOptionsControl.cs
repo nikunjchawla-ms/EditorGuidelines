@@ -15,6 +15,7 @@ namespace EditorGuidelines
         private readonly TextBox _guidelinesTextBox;
         private readonly TextBox _defaultStyleTextBox;
         private readonly Label _validationLabel;
+        private readonly CheckBox _ignoreEditorConfigCheckBox;
 
         public GuidelinesOptionsControl()
         {
@@ -76,11 +77,19 @@ namespace EditorGuidelines
                 Text = string.Empty
             };
 
+            _ignoreEditorConfigCheckBox = new CheckBox
+            {
+                Text = "Ignore .editorconfig guideline settings (global)",
+                Location = new Point(0, 205),
+                AutoSize = true
+            };
+
             Controls.AddRange(new Control[]
             {
                 guidelinesLabel, _guidelinesTextBox, guidelinesHint,
                 defaultStyleLabel, _defaultStyleTextBox, defaultStyleHint,
-                _validationLabel
+                _validationLabel,
+                _ignoreEditorConfigCheckBox
             });
         }
 
@@ -100,6 +109,15 @@ namespace EditorGuidelines
         {
             get => _defaultStyleTextBox.Text;
             set => _defaultStyleTextBox.Text = value ?? string.Empty;
+        }
+
+        /// <summary>
+        /// Gets or sets the global ignore .editorconfig setting.
+        /// </summary>
+        public bool IgnoreEditorConfig
+        {
+            get => _ignoreEditorConfigCheckBox.Checked;
+            set => _ignoreEditorConfigCheckBox.Checked = value;
         }
 
         private void OnTextChanged(object sender, EventArgs e)

@@ -475,6 +475,26 @@ namespace EditorGuidelines
         private void FirePropertyChanged(string propertyName)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
+        /// <summary>
+        /// Whether to globally ignore .editorconfig guideline settings.
+        /// </summary>
+        public bool IgnoreEditorConfigGuidelines
+        {
+            get
+            {
+                var store = ReadOnlyUserSettings;
+                Marshal.ThrowExceptionForHR(store.GetBoolOrDefault(c_textEditor, c_ignoreEditorConfigPropertyName, 0, out int value));
+                return value != 0;
+            }
+
+            set
+            {
+                var store = ReadWriteUserSettings;
+                Marshal.ThrowExceptionForHR(store.SetBool(c_textEditor, c_ignoreEditorConfigPropertyName, value ? 1 : 0));
+                FirePropertyChanged(nameof(IgnoreEditorConfigGuidelines));
+            }
+        }
+
         public bool DontShowVsVersionWarning
         {
             get
@@ -495,6 +515,7 @@ namespace EditorGuidelines
         private const string c_guidesPropertyName = "Guides";
         private const string c_styledGuidelinesPropertyName = "StyledGuidelines";
         private const string c_defaultGuidelineStylePropertyName = "DefaultGuidelineStyle";
+        private const string c_ignoreEditorConfigPropertyName = "IgnoreEditorConfigGuidelines";
         private const string c_dontShowVsVersionWarningPropertyName = "DontShowEditorGuidelinesVsVersionWarning";
 
         #region INotifyPropertyChanged Members

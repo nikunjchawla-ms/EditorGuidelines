@@ -27,6 +27,11 @@ namespace EditorGuidelines
         /// </summary>
         IEnumerable<Guideline> StyledGuidelineObjects { get; }
 
+        /// <summary>
+        /// Whether to globally ignore .editorconfig guideline settings.
+        /// </summary>
+        bool IgnoreEditorConfigGuidelines { get; set; }
+
         bool DontShowVsVersionWarning { get; set; }
     }
 }

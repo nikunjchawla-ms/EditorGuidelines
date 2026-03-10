@@ -72,7 +72,7 @@ namespace EditorGuidelines
             _guidelineBrush.BrushChanged += GuidelineBrushChanged;
             _strokeParameters = StrokeParameters.FromBrush(_guidelineBrush.Brush);
 
-            if (codingConventions != null)
+            if (codingConventions != null && !settings.IgnoreEditorConfigGuidelines)
             {
                 _codingConventionsCancellationTokenSource = new CancellationTokenSource();
                 var fireAndForgetTask = LoadGuidelinesFromEditorConfigAsync(codingConventions, view);
@@ -132,11 +132,24 @@ namespace EditorGuidelines
 
         private void SettingsChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (!_isUsingCodingConvention && sender is ITextEditorGuidesSettings settings &&
+            if (e.PropertyName == nameof(ITextEditorGuidesSettings.IgnoreEditorConfigGuidelines))
+            {
+                // When ignore toggle changes, switch between .editorconfig and local settings
+                if (sender is ITextEditorGuidesSettings settings && settings.IgnoreEditorConfigGuidelines)
+                {
+                    _isUsingCodingConvention = false;
+                    var guidelines = settings.StyledGuidelineObjects;
+                    GuidelinesChanged(guidelines);
+                }
+
+                return;
+            }
+
+            if (!_isUsingCodingConvention && sender is ITextEditorGuidesSettings settings2 &&
                 (e.PropertyName == nameof(ITextEditorGuidesSettings.StyledGuidelines) ||
                  e.PropertyName == nameof(ITextEditorGuidesSettings.GuideLinePositionsInChars)))
             {
-                var guidelines = settings.StyledGuidelineObjects;
+                var guidelines = settings2.StyledGuidelineObjects;
                 GuidelinesChanged(guidelines);
             }
         }

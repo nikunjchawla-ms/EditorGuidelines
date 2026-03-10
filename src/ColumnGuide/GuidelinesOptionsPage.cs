@@ -45,6 +45,7 @@ namespace EditorGuidelines
             {
                 _control.GuidelinesText = settings.StyledGuidelines ?? string.Empty;
                 _control.DefaultStyleText = settings.DefaultGuidelineStyle ?? string.Empty;
+                _control.IgnoreEditorConfig = settings.IgnoreEditorConfigGuidelines;
             }
         }
 
@@ -59,6 +60,7 @@ namespace EditorGuidelines
             {
                 settings.StyledGuidelines = _control.GuidelinesText.Trim();
                 settings.DefaultGuidelineStyle = _control.DefaultStyleText.Trim();
+                settings.IgnoreEditorConfigGuidelines = _control.IgnoreEditorConfig;
             }
 
             base.OnApply(e);
