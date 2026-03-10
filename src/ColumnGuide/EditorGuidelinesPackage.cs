@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Paul Harrington.  All Rights Reserved.  Licensed under the MIT License.  See LICENSE in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -10,7 +9,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
-using static System.Globalization.CultureInfo;
 
 namespace EditorGuidelines
 {
@@ -20,8 +18,8 @@ namespace EditorGuidelines
     /// The minimum requirement for a class to be considered a valid package for Visual Studio
     /// is to implement the IVsPackage interface and register itself with the shell.
     /// This package uses the helper classes defined inside the Managed Package Framework (MPF)
-    /// to do it: it derives from the Package class that provides the implementation of the 
-    /// IVsPackage interface and uses the registration attributes defined in the framework to 
+    /// to do it: it derives from the Package class that provides the implementation of the
+    /// IVsPackage interface and uses the registration attributes defined in the framework to
     /// register itself and its components with the shell.
     /// </summary>
     // This attribute tells the PkgDef creation utility (CreatePkgDef.exe) that this class is
@@ -48,9 +46,9 @@ namespace EditorGuidelines
 
         /// <summary>
         /// Default constructor of the package.
-        /// Inside this method you can place any initialization code that does not require 
-        /// any Visual Studio service because at this point the package object is created but 
-        /// not sited yet inside Visual Studio environment. The place to do all the other 
+        /// Inside this method you can place any initialization code that does not require
+        /// any Visual Studio service because at this point the package object is created but
+        /// not sited yet inside Visual Studio environment. The place to do all the other
         /// initialization is the Initialize method.
         /// </summary>
         public EditorGuidelinesPackage()
@@ -77,7 +75,6 @@ namespace EditorGuidelines
         protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            Telemetry.Client.TrackEvent(nameof(EditorGuidelinesPackage) + "." + nameof(Initialize), new Dictionary<string, string>() { ["VSVersion"] = GetShellVersion() });
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
 #pragma warning disable VSTHRD103 // Call async methods when in an async method. We're already on the main thread.
@@ -91,21 +88,6 @@ namespace EditorGuidelines
         }
 
         #endregion
-
-        private string GetShellVersion()
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-            if (GetService(typeof(SVsShell)) is IVsShell shell)
-            {
-                if (ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID5.VSSPROPID_ReleaseVersion, out var obj)) && obj != null)
-                {
-                    return obj.ToString();
-
-                }
-            }
-
-            return "Unknown";
-        }
 
         private readonly OleMenuCommand _addGuidelineCommand;
         private readonly OleMenuCommand _removeGuidelineCommand;
@@ -142,7 +124,6 @@ namespace EditorGuidelines
                     throw new ArgumentException(Resources.InvalidColumn);
                 }
 
-                Telemetry.Client.TrackEvent("Command parameter used");
                 return column;
             }
 
@@ -156,7 +137,6 @@ namespace EditorGuidelines
             var column = GetApplicableColumn(e);
             if (column >= 0)
             {
-                Telemetry.Client.TrackEvent(nameof(AddColumnGuideExecuted), new Dictionary<string, string>() { ["Column"] = column.ToString(InvariantCulture) });
                 TextEditorGuidesSettingsRendezvous.Instance.AddGuideline(column);
             }
         }
@@ -167,14 +147,12 @@ namespace EditorGuidelines
             var column = GetApplicableColumn(e);
             if (column >= 0)
             {
-                Telemetry.Client.TrackEvent(nameof(RemoveColumnGuideExecuted), new Dictionary<string, string>() { ["Column"] = column.ToString(InvariantCulture) });
                 TextEditorGuidesSettingsRendezvous.Instance.RemoveGuideline(column);
             }
         }
 
         private void RemoveAllGuidelinesExecuted(object sender, EventArgs e)
         {
-            Telemetry.Client.TrackEvent(nameof(RemoveAllGuidelinesExecuted));
             TextEditorGuidesSettingsRendezvous.Instance.RemoveAllGuidelines();
         }
 
